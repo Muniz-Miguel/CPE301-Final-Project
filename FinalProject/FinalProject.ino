@@ -58,7 +58,7 @@ void setup(){
 
   //LCD
   lcd.begin(16,2) ;
-  lcd.print("T3STING");
+  //lcd.print("T3STING");
 
 
 }
@@ -67,9 +67,9 @@ void loop(){
 
   if(*pin_k == B00000000){ //button is toggled off
 
-    Serial.println("DISABLED STATE") ;
+    //Serial.println("DISABLED STATE") ;
     rtcModule() ;
-    Serial.println() ;
+    //Serial.println() ;
     //disabledState() ;
   }
   
@@ -77,8 +77,6 @@ void loop(){
   double waterLevel = waterLevelReading();
   Serial.print(waterLevel) ;
   Serial.print('\n') ;
-  float testHumidity = dht.readHumidity();
-  float testTemp = dht.readTemperature();
   //Serial.print(testHumidity);
   //Serial.print('\n');
   //Serial.print(testTemp);
@@ -98,6 +96,10 @@ double waterLevelReading(){
 double dhtRead(){
   float humidity = dht.readHumidity() ;
   float temperature = dht.readTemperature(true) ;
+  Serial.println(F("Temperature: ")) ;
+  Serial.println(temperature) ;
+  Serial.println(F("Humidity: ")) ;
+  Serial.println(humidity) ;
 
   if(isnan(humidity) || isnan(temperature)){
     Serial.println(F("Failed to Read from DHT Sensor!")) ;
