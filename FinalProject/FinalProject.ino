@@ -1,6 +1,6 @@
 #include <LiquidCrystal.h>
 #include "DHT.h"
-#include <Servo.h>
+#include <Stepper.h>
 #include <RTClib.h>
 
 // B register
@@ -13,10 +13,7 @@ volatile unsigned char* pin_k = (unsigned char*) 0x106; // Setting the port_k (d
 volatile unsigned char* ddr_k = (unsigned char*) 0x107; // Setting the ddr_k (Data Direction Register) to address 0x107 (sets it as input or output)
 volatile unsigned char* port_k = (unsigned char*) 0x108; // Setting pin_k (Input Pin Address) to 0x108 (Reading a value from a pin)
 
-//Water Sensor Module
-float waterThreshold = 10 ;
-
-// ADC
+// ADC for Water Sensor Module
 #define RDA 0x80
 #define TBE 0x20  
 volatile unsigned char *myUCSR0A = (unsigned char *)0x00C0;
@@ -29,6 +26,8 @@ volatile unsigned char* my_ADCSRB = (unsigned char*) 0x7B;
 volatile unsigned char* my_ADCSRA = (unsigned char*) 0x7A;
 volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
 
+//Water Sensor Module Threshold
+float waterThreshold = 10 ;
 
 //DHT
 #define DHTPIN 46
@@ -38,9 +37,13 @@ DHT dht(DHTPIN, DHTTYPE);
 //RTC Module
 RTC_DS1307 rtc ;
 
-
 //LCD
 LiquidCrystal lcd(8,9,4,5,6,7);
+
+//Stepper Motor
+double stepsPerRevolution = 2048 ;
+
+Stepper myStepper(stepsPerRevolution, 29, 25, 27, 23) ;
 
 void setup(){
 
@@ -60,6 +63,9 @@ void setup(){
   lcd.begin(16,2) ;
   //lcd.print("T3STING");
 
+  //Stepper Motor
+  myStepper.setSpeed(10) ;
+
 
 }
 
@@ -77,14 +83,15 @@ void loop(){
   double waterLevel = waterLevelReading();
   Serial.print(waterLevel) ;
   Serial.print('\n') ;
-  //Serial.print(testHumidity);
-  //Serial.print('\n');
-  //Serial.print(testTemp);
-  //Serial.print('\n');
+  dhtRead() ;
 
   //RTC_Module();
   lcd.setCursor(0, 1) ;
   lcd.print(millis() / 1000);  
+  delay(1000) ; 
+
+  //Stepper Testing
+  myStepper.step(stepsPerRevolution) ;
   delay(1000) ;
 }
 
@@ -95,7 +102,7 @@ double waterLevelReading(){
 
 double dhtRead(){
   float humidity = dht.readHumidity() ;
-  float temperature = dht.readTemperature(true) ;
+  float temperature = dht.readTemperature() ;
   Serial.println(F("Temperature: ")) ;
   Serial.println(temperature) ;
   Serial.println(F("Humidity: ")) ;
