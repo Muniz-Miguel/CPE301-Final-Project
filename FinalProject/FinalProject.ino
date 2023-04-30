@@ -3,7 +3,7 @@
 #include <Stepper.h>
 #include <RTClib.h>
 
-// B register
+// B register For DC Motor Fan
 volatile unsigned char* port_b = (unsigned char*) 0x25; // Setting the port_b (data register) to address 0x25 (sets bit as high or low, outputs data)
 volatile unsigned char* ddr_b = (unsigned char*) 0x24;  // Setting the ddr_b (Data Direction Register) to address 0x24 (sets it as input or output)
 volatile unsigned char* pin_b = (unsigned char*) 0x23;  // Setting pin_b (Input Pin Address) to 0x23 (Reading a value from a pin)
@@ -66,6 +66,8 @@ void setup(){
   //Stepper Motor
   myStepper.setSpeed(10) ;
 
+  //DC Motor Fan
+  *ddr_b = B00001110;
 
 }
 
@@ -93,6 +95,11 @@ void loop(){
   //Stepper Testing
   myStepper.step(stepsPerRevolution) ;
   delay(1000) ;
+
+  //Fan Testing
+  *port_b |= B00000010;
+  *port_b &= B11110111;
+  *port_b |= B00000100;
 }
 
 double waterLevelReading(){
@@ -102,7 +109,7 @@ double waterLevelReading(){
 
 double dhtRead(){
   float humidity = dht.readHumidity() ;
-  float temperature = dht.readTemperature() ;
+  float temperature = dht.readTemperature(true) ;
   Serial.println(F("Temperature: ")) ;
   Serial.println(temperature) ;
   Serial.println(F("Humidity: ")) ;
