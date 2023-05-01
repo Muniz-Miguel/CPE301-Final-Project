@@ -18,7 +18,7 @@ volatile unsigned char* pin_d = (unsigned char*) 0x2B; // Setting the port_d (da
 volatile unsigned char* ddr_d = (unsigned char*) 0x2A; // Setting the ddr_d (Data Direction Register) to address 0x2A (sets it as input or output)
 volatile unsigned char* port_d = (unsigned char*) 0x29; // Setting pin_d (Input Pin Address) to 0x29 (Reading a value from a pin)
 
-// G register for OFF Toggle Button and Stepper Motor
+// G register for ON/OFF Toggle Button
 volatile unsigned char* pin_g = (unsigned char*) 0x34; // Setting the port_g (data register) to address 0x34 (sets bit as high or low, outputs data)
 volatile unsigned char* ddr_g = (unsigned char*) 0x33; // Setting the ddr_g (Data Direction Register) to address 0x33 (sets it as input or output)
 volatile unsigned char* port_g = (unsigned char*) 0x32; // Setting pin_g (Input Pin Address) to 0x32 (Reading a value from a pin)
@@ -28,6 +28,9 @@ volatile unsigned char* pin_l = (unsigned char*) 0x10B; // Setting the port_l (d
 volatile unsigned char* ddr_l = (unsigned char*) 0x10A; // Setting the ddr_l (Data Direction Register) to address 0x33 (sets it as input or output)
 volatile unsigned char* port_l = (unsigned char*) 0x109; // Setting pin_l (Input Pin Address) to 0x32 (Reading a value from a pin)
 
+//MACRO to turn Fan on
+#define WRITE_HIGH_PB(pin_num) *port_b |= (0x01 << pin_num) ;
+#define WRITE_LOW_PB(pin_num) *port_b &= ~(0x01 << pin_num) ;
 
 // ADC for Water Sensor Module
 #define RDA 0x80
@@ -83,13 +86,13 @@ void setup(){
   myStepper.setSpeed(10) ;
 
   //DC Motor Fan
-  *ddr_b = 0b00000011; //sets PB1 and PB0 to outputs
+  *ddr_b = 0b00000110; //sets PB1 and PB2 to outputs
 
 }
 
 void loop(){
 
-  if(*pin_k == B00000000){ //button is toggled off
+  if(*pin_g == B00000000){ //button is toggled off
 
     //Serial.println("DISABLED STATE") ;
     rtcModule() ;
