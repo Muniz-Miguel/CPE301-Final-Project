@@ -64,6 +64,10 @@ double stepsPerRevolution = 2048 ;
 
 Stepper myStepper(stepsPerRevolution, 29, 25, 27, 23) ;
 
+// Current State Global Declarations
+bool disabled = true ;
+bool error = false ;
+
 void setup(){
 
   Serial.begin(9600) ;
@@ -88,16 +92,16 @@ void setup(){
   //DC Motor Fan
   *ddr_b = 0b00001000; //sets PB1 and PB2 to outputs
 
+  //Interrupts
+
 }
 
 void loop(){
 
-  if(*pin_g == B00000000){ //button is toggled off
-
-    //Serial.println("DISABLED STATE") ;
-    rtcModule() ;
-    //Serial.println() ;
-    //disabledState() ;
+  if(disabled == true){ //button is toggled off
+    lcd.clear();
+    disabledState();
+    
   }
   
   rtcModule();
@@ -117,6 +121,22 @@ void loop(){
 
   //Fan Testing
   *port_b ^= B00001000;
+}
+
+void disabledState(){
+  //Green LED pin 34
+  //Blue LED pin 36
+  //Red LED pin 33
+  //Yellow LED 35
+  
+  //turn motor off
+  //CODE TO TURN MOTOR OFF
+
+  //Turn other LEDs off
+  *port_c &= 0b00010000 ;
+
+  //Turn Yellow LED on
+  *port_c |= 0b00010000 ;
 }
 
 double waterLevelReading(){
