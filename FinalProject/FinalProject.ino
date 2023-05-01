@@ -86,7 +86,7 @@ void setup(){
   myStepper.setSpeed(10) ;
 
   //DC Motor Fan
-  *ddr_b = 0b00001110; //sets PB1 and PB2 to outputs
+  *ddr_b = 0b00001000; //sets PB1 and PB2 to outputs
 
 }
 
@@ -116,9 +116,7 @@ void loop(){
   delay(1000) ;
 
   //Fan Testing
-  *port_b |= B00000010;
-  *port_b &= B11110111;
-  *port_b |= B00000100;
+  *port_b ^= B00001000;
 }
 
 double waterLevelReading(){
