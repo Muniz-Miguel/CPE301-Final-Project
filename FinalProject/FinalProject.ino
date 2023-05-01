@@ -13,6 +13,7 @@ volatile unsigned char* pin_c = (unsigned char*) 0x28; // Setting the port_c (da
 volatile unsigned char* ddr_c = (unsigned char*) 0x27; // Setting the ddr_c (Data Direction Register) to address 0x27 (sets it as input or output)
 volatile unsigned char* port_c = (unsigned char*) 0x26; // Setting pin_c (Input Pin Address) to 0x26 (Reading a value from a pin)
 
+
 // D register for LEDs
 volatile unsigned char* pin_d = (unsigned char*) 0x2B; // Setting the port_d (data register) to address 0x2B (sets bit as high or low, outputs data)
 volatile unsigned char* ddr_d = (unsigned char*) 0x2A; // Setting the ddr_d (Data Direction Register) to address 0x2A (sets it as input or output)
@@ -68,6 +69,8 @@ Stepper myStepper(stepsPerRevolution, 29, 25, 27, 23) ;
 bool disabled = true ;
 bool error = false ;
 
+const int LED_PIN = 37;
+
 void setup(){
 
   Serial.begin(9600) ;
@@ -90,40 +93,43 @@ void setup(){
   myStepper.setSpeed(10) ;
 
   //LEDs
-  *ddr_c = B11110000;
+  *ddr_c |= 0b00001111;
 
   //DC Motor Fan
   *ddr_b = 0b00001000; //sets PB1 and PB2 to outputs
 
   //Interrupts
-
+    //pinMode(37, OUTPUT);
 }
 
 void loop(){
 
-  if(disabled == true){ //button is toggled off
-    lcd.clear();
-    disabledState();
+  // if(disabled == true){ //button is toggled off
+  //   lcd.clear();
+  //   disabledState();
     
-  }
-  
-  rtcModule();
-  double waterLevel = waterLevelReading();
-  Serial.print(waterLevel) ;
-  Serial.print('\n') ;
-  dhtRead() ;
+  // }
+  //digitalWrite(37, HIGH);
+  // rtcModule();
+  // double waterLevel = waterLevelReading();
+  // Serial.print(waterLevel) ;
+  // Serial.print('\n') ;
+  // dhtRead();
 
-  //RTC_Module();
-  lcd.setCursor(0, 1) ;
-  lcd.print(millis() / 1000);  
-  delay(1000) ; 
+  // //RTC_Module();
+  // lcd.setCursor(0, 1) ;
+  // lcd.print(millis() / 1000);  
+  // //delay(1000) ; 
 
-  //Stepper Testing
-  myStepper.step(stepsPerRevolution) ;
-  delay(1000) ;
+  // //Stepper Testing
+  // myStepper.step(stepsPerRevolution) ;
+  //delay(1000) ;
 
   //Fan Testing
-  *port_b ^= B00001000;
+  //*port_b ^= B00001000;
+  // *port_c |= 0b00010000 ;
+  *port_c |= 0b00001111;
+  *port_b |= 0b00001111;
 }
 
 void disabledState(){
