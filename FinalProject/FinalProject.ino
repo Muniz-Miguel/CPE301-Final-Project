@@ -89,6 +89,9 @@ void setup(){
   //Stepper Motor
   myStepper.setSpeed(10) ;
 
+  //LEDs
+  *ddr_c = B11110000;
+
   //DC Motor Fan
   *ddr_b = 0b00001000; //sets PB1 and PB2 to outputs
 
