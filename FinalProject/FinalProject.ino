@@ -8,10 +8,26 @@ volatile unsigned char* port_b = (unsigned char*) 0x25; // Setting the port_b (d
 volatile unsigned char* ddr_b = (unsigned char*) 0x24;  // Setting the ddr_b (Data Direction Register) to address 0x24 (sets it as input or output)
 volatile unsigned char* pin_b = (unsigned char*) 0x23;  // Setting pin_b (Input Pin Address) to 0x23 (Reading a value from a pin)
 
-// K register
-volatile unsigned char* pin_k = (unsigned char*) 0x106; // Setting the port_k (data register) to address 0x106 (sets bit as high or low, outputs data)
-volatile unsigned char* ddr_k = (unsigned char*) 0x107; // Setting the ddr_k (Data Direction Register) to address 0x107 (sets it as input or output)
-volatile unsigned char* port_k = (unsigned char*) 0x108; // Setting pin_k (Input Pin Address) to 0x108 (Reading a value from a pin)
+// C register for LEDs
+volatile unsigned char* pin_c = (unsigned char*) 0x28; // Setting the port_c (data register) to address 0x28 (sets bit as high or low, outputs data)
+volatile unsigned char* ddr_c = (unsigned char*) 0x27; // Setting the ddr_c (Data Direction Register) to address 0x27 (sets it as input or output)
+volatile unsigned char* port_c = (unsigned char*) 0x26; // Setting pin_c (Input Pin Address) to 0x26 (Reading a value from a pin)
+
+// D register for LEDs
+volatile unsigned char* pin_d = (unsigned char*) 0x2B; // Setting the port_d (data register) to address 0x2B (sets bit as high or low, outputs data)
+volatile unsigned char* ddr_d = (unsigned char*) 0x2A; // Setting the ddr_d (Data Direction Register) to address 0x2A (sets it as input or output)
+volatile unsigned char* port_d = (unsigned char*) 0x29; // Setting pin_d (Input Pin Address) to 0x29 (Reading a value from a pin)
+
+// G register for OFF Toggle Button and Stepper Motor
+volatile unsigned char* pin_g = (unsigned char*) 0x34; // Setting the port_g (data register) to address 0x34 (sets bit as high or low, outputs data)
+volatile unsigned char* ddr_g = (unsigned char*) 0x33; // Setting the ddr_g (Data Direction Register) to address 0x33 (sets it as input or output)
+volatile unsigned char* port_g = (unsigned char*) 0x32; // Setting pin_g (Input Pin Address) to 0x32 (Reading a value from a pin)
+
+// L registers for Vent Control
+volatile unsigned char* pin_l = (unsigned char*) 0x10B; // Setting the port_l (data register) to address 0x34 (sets bit as high or low, outputs data)
+volatile unsigned char* ddr_l = (unsigned char*) 0x10A; // Setting the ddr_l (Data Direction Register) to address 0x33 (sets it as input or output)
+volatile unsigned char* port_l = (unsigned char*) 0x109; // Setting pin_l (Input Pin Address) to 0x32 (Reading a value from a pin)
+
 
 // ADC for Water Sensor Module
 #define RDA 0x80
@@ -67,7 +83,7 @@ void setup(){
   myStepper.setSpeed(10) ;
 
   //DC Motor Fan
-  *ddr_b = B00001110;
+  *ddr_b = 0b00000011; //sets PB1 and PB0 to outputs
 
 }
 
