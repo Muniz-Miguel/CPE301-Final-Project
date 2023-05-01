@@ -116,9 +116,8 @@ void loop(){
   delay(1000) ;
 
   //Fan Testing
-  *port_b |= B00000010;
-  *port_b &= B11110111;
-  *port_b |= B00000100;
+  WRITE_HIGH_PB(50) ;
+  WIRTE_HIGH_PB(51) ;
 }
 
 double waterLevelReading(){
