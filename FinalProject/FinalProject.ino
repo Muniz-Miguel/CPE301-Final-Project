@@ -90,10 +90,10 @@ void setup(){
   myStepper.setSpeed(10) ;
 
   //LEDs
-  *ddr_c = 0b11110000;
+  *ddr_c = 0b00001111; //Set required port to output
 
   //DC Motor Fan
-  *ddr_b = 0b00001000; //sets PB1 and PB2 to outputs
+  *ddr_b = 0b00001000; //Set required port to output
 
   //Interrupts
   attachInterrupt(digitalPinToInterrupt(19), onOffSwitch, RISING) ;
@@ -102,10 +102,16 @@ void setup(){
 void loop(){
 
   if(disabled == true){ //button is toggled off
+    Serial.println(F("Entered Disabled State!")) ;
     lcd.clear();
     disabledState();
   }
-  
+
+  if(disabled == false){
+    Serial.println(F("Entered Running State!")) ;
+    lcd.clear() ;
+    runningState() ;
+  }
   rtcModule();
   double waterLevel = waterLevelReading();
   Serial.print(waterLevel) ;
@@ -119,8 +125,6 @@ void loop(){
   //Stepper Testing
   myStepper.step(stepsPerRevolution) ;
 
-  //Fan Testing
-  *port_b ^= B00001000;
 }
 
 void disabledState(){
@@ -133,12 +137,20 @@ void disabledState(){
   //CODE TO TURN MOTOR OFF
 
   //Turn other LEDs off
-  *port_c &= 0b00010000 ;
+  *port_c &= 0b00000000 ;
 
   //Turn Yellow LED on
-  *port_c |= 0b00010000 ;
+  *port_c |= 0b00000001 ;
 
   delay(1000) ;
+}
+
+void runningState(){
+  //turn all LEDs off
+  *port_c &= 0b00000000 ;
+
+  //Turn Green LED on
+  *port_c &= 0b00001000 ;
 }
 
 double waterLevelReading(){
