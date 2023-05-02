@@ -95,6 +95,10 @@ void setup(){
   //DC Motor Fan
   *ddr_b = 0b00001000; //Set required port to output
 
+  //Initialization For On/Off Interrupt
+  *ddr_d = 0b00000000 ;
+  
+
   //Interrupts
   attachInterrupt(digitalPinToInterrupt(19), onOffSwitch, RISING) ;
 }
@@ -130,8 +134,8 @@ void loop(){
 void disabledState(){
   //Green LED pin 34
   //Blue LED pin 36
-  //Red LED pin 33
-  //Yellow LED 35
+  //Red LED pin 35
+  //Yellow LED 37
   
   //turn motor off
   //CODE TO TURN MOTOR OFF
@@ -146,8 +150,8 @@ void disabledState(){
 }
 
 void runningState(){
-  //turn all LEDs off
-  *port_c &= 0b00000000 ;
+  //turn Fan On
+  *port_b &= 0b00001000 ;
 
   //Turn Green LED on
   *port_c &= 0b00001000 ;
