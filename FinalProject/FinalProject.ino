@@ -46,7 +46,7 @@ volatile unsigned char* my_ADCSRA = (unsigned char*) 0x7A;
 volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
 
 //Water Sensor Module Threshold
-float waterThreshold = 10 ;
+float waterThreshold = 200 ;
 
 //DHT
 #define DHTPIN 46
@@ -94,9 +94,6 @@ void setup(){
 
   //DC Motor Fan
   *ddr_b = 0b00001000; //Set required port to output
-
-  //Initialization For On/Off Interrupt
-  *ddr_d = 0b00000000 ;
   
 
   //Interrupts
@@ -111,7 +108,7 @@ void loop(){
     disabledState();
   }
 
-  if(disabled == false){
+  if(disabled == false && error == false && waterLevel() > waterThreshold && dht.readTemperature(true) > 50){
     Serial.println(F("Entered Running State!")) ;
     lcd.clear() ;
     runningState() ;
