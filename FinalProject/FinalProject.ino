@@ -98,6 +98,7 @@ void setup(){
 
   //Interrupts
   attachInterrupt(digitalPinToInterrupt(19), onOffSwitch, RISING) ;
+  attachInterrupt(digitalPinToInterrupt(18), resetSystem, RISING) ;
 }
 
 void loop(){
@@ -108,7 +109,7 @@ void loop(){
     disabledState();
   }
 
-  if(disabled == false && error == false && waterLevel() > waterThreshold && dht.readTemperature(true) > 50){
+  if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > 50){
     Serial.println(F("Entered Running State!")) ;
     lcd.clear() ;
     runningState() ;
@@ -207,7 +208,14 @@ void rtcModule(){
 }
 
 void onOffSwitch(){
-  disabled = !disabled ;
+  disabled = false ;
+}
+
+void resetSystem(){
+  if(error == true){
+    error == false ;
+  }
+  disabled = true ;
 }
 
 void adc_init(){
