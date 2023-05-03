@@ -126,6 +126,14 @@ void loop(){
     lcd.clear() ;
     idleState() ;
   }
+
+  // IF Condition for Error State
+  if(disabled == false && error == false && waterLevelReading() < waterThreshold){
+    Serial.println(F("Entered Error State!")) ;
+    rtcModule() ;
+    lcd.clear() ;
+    errorState() ;
+  }
   
   rtcModule();
   double waterLevel = waterLevelReading();
@@ -137,7 +145,7 @@ void loop(){
   lcd.setCursor(0, 1) ;
   lcd.print(millis() / 1000);   
 
-  //Stepper Testing
+  //Stepper Testing //
   myStepper.step(stepsPerRevolution) ;
 
 }
@@ -185,6 +193,25 @@ void idleState(){
   while(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
     dhtRead() ;
   }
+}
+
+void errorState(){
+  error = true ;
+
+  // Turn Fan off
+  *port_b &= 0b00000000 ;
+
+  // Turn all LEDs off
+  *port_c &= 0b00000000 ;
+
+  // Turn Red LED on
+  *port_c |= 0b00000100 ;
+
+  // Throw Error Message to LCD
+  lcd.setCursor(0,0) ;
+  lcd.print("Water Level") ;
+  lcd.setCursor(0,1) ;
+  lcd.print("Too Low!") ;
 }
 
 double waterLevelReading(){
