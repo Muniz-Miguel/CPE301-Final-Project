@@ -66,8 +66,10 @@ double stepsPerRevolution = 2048 ;
 Stepper myStepper(stepsPerRevolution, 29, 25, 27, 23) ;
 
 // Current State Global Declarations
-volatile  bool disabled = true ;
-volatile  bool error = false ;
+volatile bool disabled = true ;
+volatile bool error = false ;
+volatile bool running = false;
+volatile bool idle = false;
 
 //debounce
 unsigned long lastDebounceTime = 0;
@@ -126,7 +128,7 @@ void loop(){
   }
   rtcModule();
   double waterLevel = waterLevelReading();
-  Serial.print("WaterLevel: ");
+  Serial.print(F("WaterLevel: "));
   Serial.println(waterLevel) ;
   dhtRead() ;
 
@@ -151,6 +153,8 @@ void disabledState(){
   //Turn other LEDs off
   *port_c &= 0b00000000 ;
 
+  //*port_c &= 0b00000000;
+
   //Turn Yellow LED on
   *port_c |= 0b00000001 ;
 
@@ -163,8 +167,8 @@ void runningState(){
   *port_b |= 0b00001000 ;
   //Turn other LEDs off
   *port_c &= 0b00000000 ;
-  //Turn Green LED on
-  *port_c |= 0b00001000 ;
+  //Turn Blue LED on
+  *port_c |= 0b00000010 ;
 }
 
 double waterLevelReading(){
