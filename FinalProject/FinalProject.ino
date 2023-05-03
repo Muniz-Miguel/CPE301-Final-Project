@@ -45,6 +45,7 @@ volatile unsigned char* my_ADCSRB = (unsigned char*) 0x7B;
 volatile unsigned char* my_ADCSRA = (unsigned char*) 0x7A;
 volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
 
+
 //Water Sensor Module Threshold
 float waterThreshold = 200 ;
 
@@ -65,11 +66,15 @@ double stepsPerRevolution = 2048 ;
 Stepper myStepper(stepsPerRevolution, 29, 25, 27, 23) ;
 
 // Current State Global Declarations
-bool disabled = true ;
-bool error = false ;
+volatile  bool disabled = true ;
+volatile  bool error = false ;
+
+//debounce
+unsigned long lastDebounceTime = 0;
+const unsigned long debounceDelay = 50;
 
 void setup(){
-
+  
   Serial.begin(9600) ;
   
   //Initialize ADC
@@ -95,29 +100,34 @@ void setup(){
   //DC Motor Fan
   *ddr_b = 0b00001000; //Set required port to output
   
-
+  //disabled = true ;
+  // DDRB &= 0b;  // set interrupt pin as input
+  // PORTB |= 0b;  // enable internal pull-up resistor
+  *ddr_d = 0b00000000;
+  *port_d =0b00001000;
   //Interrupts
   attachInterrupt(digitalPinToInterrupt(19), onOffSwitch, RISING) ;
   attachInterrupt(digitalPinToInterrupt(18), resetSystem, RISING) ;
 }
 
 void loop(){
+  Serial.print("Boolean: ");
+  Serial.print(disabled);
+  Serial.println();
 
   if(disabled == true){ //button is toggled off
-    Serial.println(F("Entered Disabled State!")) ;
     lcd.clear();
     disabledState();
   }
 
-  if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > 50){
-    Serial.println(F("Entered Running State!")) ;
+  if(disabled == false && error == false){ // && waterLevelReading() > waterThreshold && dht.readTemperature(true) > 50){
     lcd.clear() ;
     runningState() ;
   }
   rtcModule();
   double waterLevel = waterLevelReading();
-  Serial.print(waterLevel) ;
-  Serial.print('\n') ;
+  Serial.print("WaterLevel: ");
+  Serial.println(waterLevel) ;
   dhtRead() ;
 
   //RTC_Module();
@@ -134,9 +144,9 @@ void disabledState(){
   //Blue LED pin 36
   //Red LED pin 35
   //Yellow LED 37
-  
+  Serial.println(F("Entered Disabled State!")) ;
   //turn motor off
-  //CODE TO TURN MOTOR OFF
+  *port_b &= 0b00000000 ;
 
   //Turn other LEDs off
   *port_c &= 0b00000000 ;
@@ -144,15 +154,17 @@ void disabledState(){
   //Turn Yellow LED on
   *port_c |= 0b00000001 ;
 
-  delay(1000) ;
+  //delay(1000) ;
 }
 
 void runningState(){
+  Serial.println(F("Entered Running State!")) ;
   //turn Fan On
-  *port_b &= 0b00001000 ;
-
+  *port_b |= 0b00001000 ;
+  //Turn other LEDs off
+  *port_c &= 0b00000000 ;
   //Turn Green LED on
-  *port_c &= 0b00001000 ;
+  *port_c |= 0b00001000 ;
 }
 
 double waterLevelReading(){
@@ -208,14 +220,20 @@ void rtcModule(){
 }
 
 void onOffSwitch(){
-  disabled = false ;
+    unsigned long currentMillis = millis();
+
+  if (currentMillis - lastDebounceTime >= debounceDelay) {
+    lastDebounceTime = currentMillis;
+    disabled = !disabled;
+  }
+  //Serial.println("INTERRUPT");
 }
 
 void resetSystem(){
   if(error == true){
     error == false ;
   }
-  disabled = true ;
+  //disabled = true ;
 }
 
 void adc_init(){
