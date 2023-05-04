@@ -205,7 +205,7 @@ void loop(){
   // Serial.print("Turnning VentR: ");
   // Serial.println(turnVentR);
   if(turnVentR == true && error == false){
-    myStepper.step(stepsPerRevolution) ;
+    myStepper.step(-stepsPerRevolution) ;
   }
   
   // rtcModule();
