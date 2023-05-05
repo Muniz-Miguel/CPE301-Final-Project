@@ -13,6 +13,8 @@ volatile unsigned char* port_c = (unsigned char*) 0x28;
 volatile unsigned char* ddr_c = (unsigned char*) 0x27;  
 volatile unsigned char* pin_c = (unsigned char*) 0x26; 
 
+const uint8_t SWITCH_PIN = 19;
+
 // D register for LEDs
 volatile unsigned char* port_d = (unsigned char*) 0x2B; 
 volatile unsigned char* ddr_d = (unsigned char*) 0x2A;  
@@ -46,7 +48,7 @@ volatile unsigned char *mySREG = (unsigned char *)0x5F;
 volatile unsigned char *myEICRA = (unsigned char *)0x69;
 volatile unsigned char *myEIMSK = (unsigned char *)0x3D;
 
-const int SWITCH_PIN = 19;
+//const int SWITCH_PIN = 19;
 const int LED_PIN = 37;
 
 //MACRO to turn Fan on
@@ -102,7 +104,7 @@ volatile bool turnVentR = false;
 
 bool ledState = false;
 unsigned long lastDebounceTime = 0;
-const unsigned long debounceDelay = 200;
+const unsigned long debounceDelay = 300;
 
 void setup(){
   disabled = true ;
@@ -139,7 +141,10 @@ void setup(){
   // *myEICRA &= 0b10101111; // falling edge mode for interrupt 2/3
   // *myEIMSK |= 0b00001100; // turn on interrupt 2/3
   // *mySREG |= 0b10000000;  // turn on global interrupt
-  //attachInterrupt(digitalPinToInterrupt(19), onOffSwitchISR, RISING);
+  DDRD &= ~(1 << SWITCH_PIN);
+  PORTD |= (1 << SWITCH_PIN); 
+
+  attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), onOffSwitchISR, FALLING);
   //attachInterrupt(digitalPinToInterrupt(19), onOffSwitch, FALLING) ;
   // attachInterrupt(digitalPinToInterrupt(18), resetSystem, FALLING);
   // attachInterrupt(digitalPinToInterrupt(3), turnVentClockwise, FALLING);
@@ -148,9 +153,9 @@ void setup(){
   // Serial.println(F("Entered Disabled State!")) ;
   // lcd.clear();
   // disabledState();
-  pinMode(SWITCH_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), onOffSwitchISR, RISING);
+  // pinMode(SWITCH_PIN, INPUT_PULLUP);
+  // pinMode(LED_PIN, OUTPUT);
+  // attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), onOffSwitchISR, RISING);
 
   Serial.begin(9600) ;
 }
@@ -174,31 +179,32 @@ void loop(){
   //   WRITE_HIGH_PC(0);
   // }
   if(millis() - lastDebounceTime > debounceDelay){
-    if(buttonPressed){
-      digitalWrite(LED_PIN, HIGH);
-    } else {
-      digitalWrite(LED_PIN, LOW);
-    }
-  }
+    // if(buttonPressed){
+    //   digitalWrite(LED_PIN, HIGH);
+    // } else {
+    //   digitalWrite(LED_PIN, LOW);
+    // }
+  
   
 
 
-  // if (buttonPressed){
-  // // IF Condition for Running State
-  //   // if(disabled == false && error == false){ // && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
-  //     //Serial.println(F("Entered Running State!")) ;
-  //     // lcd.clear() ;
-  //     // runningState() ;
-  //     //detachInterrupt(digitalPinToInterrupt(18));
-  //     digitalWrite(LED_PIN, HIGH);
-  //   //}
-  // } else {
-  //     // if(disabled == true){ //button is toggled off
-  //     //Serial.println(F("Entered Disabled State!")) ;
-  //     // lcd.clear();
-  //     // disabledState();
-  //     digitalWrite(LED_PIN, LOW); // turn off the LED
-  //     // }
+  if (buttonPressed){
+  // IF Condition for Running State
+   // if(disabled == false && error == false){ // && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
+      Serial.println(F("Entered Running State!")) ;
+      lcd.clear() ;
+      runningState() ;
+      //detachInterrupt(digitalPinToInterrupt(18));
+      // digitalWrite(LED_PIN, HIGH);
+    //}
+  } else {
+      // if(disabled == true){ //button is toggled off
+      Serial.println(F("Entered Disabled State!")) ;
+      lcd.clear();
+      disabledState();
+      // digitalWrite(LED_PIN, LOW); // turn off the LED
+  }
+}
   // }
   // IF Condition for Idle State
   if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) <= tempThreshold){
@@ -453,7 +459,7 @@ void onOffSwitchISR(){
   // buttonPressed = !buttonPressed;
 
    if(millis() - lastDebounceTime > debounceDelay){
-    disabled = false; // enable the interrupt (assuming 'disabled' is a variable controlling the interrupt)
+    //disabled = false; // enable the interrupt (assuming 'disabled' is a variable controlling the interrupt)
     buttonPressed = !buttonPressed; // toggle the state of the button
     lastDebounceTime = millis(); // record the last time the switch was toggled
   }
