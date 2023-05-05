@@ -142,7 +142,12 @@ void setup(){
   // attachInterrupt(digitalPinToInterrupt(3), turnVentClockwise, FALLING);
   // attachInterrupt(digitalPinToInterrupt(2), turnVentCounter, FALLING);
 
+<<<<<<< Updated upstream
   
+=======
+  // Serial.println(F("Entered Disabled State!")) ;
+  // lcd.clear();
+>>>>>>> Stashed changes
 
   Serial.begin(9600) ;
 }
@@ -152,6 +157,7 @@ void loop(){
   Serial.print("Disabled: ");
   Serial.println(disabled);
 
+<<<<<<< Updated upstream
   // if (buttonPressed) {
   //   Serial.println("Button pressed!");
   //   buttonPressed = false;
@@ -170,6 +176,35 @@ void loop(){
     disabledState();
     //detachInterrupt(digitalPinToInterrupt(18));
 
+=======
+  if (buttonPressed) {
+    disabled = false ;
+  }
+  else{
+    disabled = true ;
+  }
+
+  // IF Condition for Disabled State
+  if(disabled == false){
+    //Serial.println(F("Entered Running State!")) ;
+      lcd.clear() ;
+      disabledState() ;
+  }
+  
+  // IF Condition for Running State
+  if(disabled == false && error == false){ // && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
+      //Serial.println(F("Entered Running State!")) ;
+      lcd.clear() ;
+      runningState() ;
+      //detachInterrupt(digitalPinToInterrupt(18));
+    //}
+  } else {
+      // if(disabled == true){ //button is toggled off
+      //Serial.println(F("Entered Disabled State!")) ;
+      lcd.clear();
+      disabledState();
+      // }
+>>>>>>> Stashed changes
   }
   
   // IF Condition for Running State
