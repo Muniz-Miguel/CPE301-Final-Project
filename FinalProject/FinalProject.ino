@@ -136,18 +136,14 @@ void setup(){
   // *myEICRA &= 0b10101111; // falling edge mode for interrupt 2/3
   // *myEIMSK |= 0b00001100; // turn on interrupt 2/3
   // *mySREG |= 0b10000000;  // turn on global interrupt
-  attachInterrupt(digitalPinToInterrupt(19), onOffSwitchISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(19), onOffSwitchISR, RISING);
   //attachInterrupt(digitalPinToInterrupt(19), onOffSwitch, FALLING) ;
   // attachInterrupt(digitalPinToInterrupt(18), resetSystem, FALLING);
   // attachInterrupt(digitalPinToInterrupt(3), turnVentClockwise, FALLING);
   // attachInterrupt(digitalPinToInterrupt(2), turnVentCounter, FALLING);
 
-<<<<<<< Updated upstream
-  
-=======
   // Serial.println(F("Entered Disabled State!")) ;
   // lcd.clear();
->>>>>>> Stashed changes
 
   Serial.begin(9600) ;
 }
@@ -156,27 +152,10 @@ void loop(){
   Serial.println();
   Serial.print("Disabled: ");
   Serial.println(disabled);
+  Serial.println();
+  Serial.print("buttonPressed: ");
+  Serial.println(buttonPressed);
 
-<<<<<<< Updated upstream
-  // if (buttonPressed) {
-  //   Serial.println("Button pressed!");
-  //   buttonPressed = false;
-  //   WRITE_HIGH_PC(0);
-  // }
-  // if (buttonPressed) {
-  //   //toggleLed();
-  //   buttonPressed = false;
-  //   WRITE_HIGH_PC(0);
-  // }
-
-  // IF Condition for Disabled State
-  if(disabled == true){ //button is toggled off
-    Serial.println(F("Entered Disabled State!")) ;
-    lcd.clear();
-    disabledState();
-    //detachInterrupt(digitalPinToInterrupt(18));
-
-=======
   if (buttonPressed) {
     disabled = false ;
   }
@@ -197,23 +176,8 @@ void loop(){
       lcd.clear() ;
       runningState() ;
       //detachInterrupt(digitalPinToInterrupt(18));
-    //}
-  } else {
-      // if(disabled == true){ //button is toggled off
-      //Serial.println(F("Entered Disabled State!")) ;
-      lcd.clear();
-      disabledState();
-      // }
->>>>>>> Stashed changes
-  }
-  
-  // IF Condition for Running State
-  if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
-    Serial.println(F("Entered Running State!")) ;
-    lcd.clear() ;
-    runningState() ;
-  }
-
+    }
+    
   // IF Condition for Idle State
   if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) <= tempThreshold){
     Serial.println(F("Entered Idle State!")) ;
@@ -231,7 +195,7 @@ void loop(){
     errorState() ;
   }
 
-//If condition for reset button
+// If condition for reset button
   if(resetPressed == true && error == true){
     Serial.println("Reset Button pressed!");
     resetProgram();
@@ -291,11 +255,39 @@ void disabledState(){
   WRITE_HIGH_PC(0);
   //*port_c |= 0b00000001 ;
 
-  while(disabled == true){
-    dhtRead() ;
-  }
+  // while(disabled == true){
+  //   dhtRead() ;
+  // }
 
 }
+
+// void disabledState(){
+//   //Green LED pin 34
+//   //Blue LED pin 36
+//   //Red LED pin 35
+//   //Yellow LED 37
+//   //Serial.println("MEOW");
+//   //turn motor off
+//  // *port_b &= 0b00000000 ;
+//   WRITE_LOW_PB(3);
+
+//   //Turn other LEDs off
+//   //*port_c &= 0b11111111 ;
+//   WRITE_LOW_PC(0);
+//   WRITE_LOW_PC(1);
+//   WRITE_LOW_PC(2);
+//   WRITE_LOW_PC(3);
+
+
+//   //Turn Yellow LED on
+//   WRITE_HIGH_PC(0);
+//   //*port_c |= 0b00000001 ;
+
+//   // while(disabled == true){
+//   //   dhtRead() ;
+//   // }
+
+// }
 
 void runningState(){
   //turn Fan On
@@ -319,14 +311,14 @@ void runningState(){
   // Serial.println(waterLevel) ;
   // dhtRead() ;
 
-  while(disabled == false && error == false){
-    if(waterLevelReading() < waterThreshold){
-      errorState() ;
-    }
-    else{
-      dhtRead() ;
-    }
-  }
+  // while(disabled == false && error == false){
+  //   if(waterLevelReading() < waterThreshold){
+  //     errorState() ;
+  //   }
+  //   else{
+  //     dhtRead() ;
+  //   }
+  // }
 }
 
 void idleState(){
@@ -434,12 +426,8 @@ void rtcModule(){
 
 //int i;
 void onOffSwitchISR(){
-  if(disabled = false){
-    disabled = true;
-  }
-  else{
-    disabled = false ;
-  }
+  disabled = false;
+  buttonPressed = !buttonPressed;
   //Serial.println(i++);
 }
 
