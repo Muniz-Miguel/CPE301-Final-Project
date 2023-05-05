@@ -250,8 +250,7 @@ void disabledState(){
   //*port_c |= 0b00000001 ;
 
   while(disabled == true){
-    lcd.setCursor(0,0) ;
-    lcd.print("DISABLED") ;
+    dhtRead() ;
   }
 
 }
