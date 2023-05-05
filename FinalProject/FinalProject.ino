@@ -399,7 +399,12 @@ void rtcModule(){
 
 //int i;
 void onOffSwitchISR(){
-  disabled = false;
+  if(disabled = false){
+    disabled = true;
+  }
+  else{
+    disabled = false ;
+  }
   //Serial.println(i++);
 }
 
