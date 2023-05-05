@@ -9,24 +9,29 @@ volatile unsigned char* ddr_b = (unsigned char*) 0x24;  // Setting the ddr_b (Da
 volatile unsigned char* pin_b = (unsigned char*) 0x23;  // Setting pin_b (Input Pin Address) to 0x23 (Reading a value from a pin)
 
 // C register for LEDs
-volatile unsigned char* pin_c = (unsigned char*) 0x28; // Setting the port_c (data register) to address 0x28 (sets bit as high or low, outputs data)
-volatile unsigned char* ddr_c = (unsigned char*) 0x27; // Setting the ddr_c (Data Direction Register) to address 0x27 (sets it as input or output)
-volatile unsigned char* port_c = (unsigned char*) 0x26; // Setting pin_c (Input Pin Address) to 0x26 (Reading a value from a pin)
+volatile unsigned char* port_c = (unsigned char*) 0x28; 
+volatile unsigned char* ddr_c = (unsigned char*) 0x27;  
+volatile unsigned char* pin_c = (unsigned char*) 0x26; 
 
 // D register for LEDs
-volatile unsigned char* pin_d = (unsigned char*) 0x2B; // Setting the port_d (data register) to address 0x2B (sets bit as high or low, outputs data)
-volatile unsigned char* ddr_d = (unsigned char*) 0x2A; // Setting the ddr_d (Data Direction Register) to address 0x2A (sets it as input or output)
-volatile unsigned char* port_d = (unsigned char*) 0x29; // Setting pin_d (Input Pin Address) to 0x29 (Reading a value from a pin)
+volatile unsigned char* port_d = (unsigned char*) 0x2B; 
+volatile unsigned char* ddr_d = (unsigned char*) 0x2A;  
+volatile unsigned char* pin_d = (unsigned char*) 0x29; 
+
+// E Registers For Vent Control
+volatile unsigned char* port_e = (unsigned char*) 0x2D; 
+volatile unsigned char* ddr_e = (unsigned char*) 0x2E;  
+volatile unsigned char* pin_e = (unsigned char*) 0x2C; 
 
 // G register for ON/OFF Toggle Button
-volatile unsigned char* pin_g = (unsigned char*) 0x34; // Setting the port_g (data register) to address 0x34 (sets bit as high or low, outputs data)
-volatile unsigned char* ddr_g = (unsigned char*) 0x33; // Setting the ddr_g (Data Direction Register) to address 0x33 (sets it as input or output)
-volatile unsigned char* port_g = (unsigned char*) 0x32; // Setting pin_g (Input Pin Address) to 0x32 (Reading a value from a pin)
+volatile unsigned char* port_g = (unsigned char*) 0x34; 
+volatile unsigned char* ddr_g = (unsigned char*) 0x33;  
+volatile unsigned char* pin_g = (unsigned char*) 0x32; 
 
 // L registers for Vent Control
-volatile unsigned char* pin_l = (unsigned char*) 0x10B; // Setting the port_l (data register) to address 0x34 (sets bit as high or low, outputs data)
-volatile unsigned char* ddr_l = (unsigned char*) 0x10A; // Setting the ddr_l (Data Direction Register) to address 0x33 (sets it as input or output)
-volatile unsigned char* port_l = (unsigned char*) 0x109; // Setting pin_l (Input Pin Address) to 0x32 (Reading a value from a pin)
+volatile unsigned char* port_l = (unsigned char*) 0x10B; 
+volatile unsigned char* ddr_l = (unsigned char*) 0x10A;  
+volatile unsigned char* pin_l = (unsigned char*) 0x109; 
 
 // Delay variables
 volatile unsigned char *myTCCR1A = (unsigned char *)0x80;
