@@ -68,7 +68,7 @@ volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
 
 //Thresholds
 float waterThreshold = 200 ;
-float tempThreshold = 70 ;
+float tempThreshold = 55 ;
 
 //DHT
 #define DHTPIN 46
@@ -138,9 +138,9 @@ void setup(){
   // *mySREG |= 0b10000000;  // turn on global interrupt
   attachInterrupt(digitalPinToInterrupt(19), onOffSwitchISR, FALLING);
   //attachInterrupt(digitalPinToInterrupt(19), onOffSwitch, FALLING) ;
-  attachInterrupt(digitalPinToInterrupt(18), resetSystem, FALLING);
-  attachInterrupt(digitalPinToInterrupt(3), turnVentClockwise, FALLING);
-  attachInterrupt(digitalPinToInterrupt(2), turnVentCounter, FALLING);
+  // attachInterrupt(digitalPinToInterrupt(18), resetSystem, FALLING);
+  // attachInterrupt(digitalPinToInterrupt(3), turnVentClockwise, FALLING);
+  // attachInterrupt(digitalPinToInterrupt(2), turnVentCounter, FALLING);
 
   
 
@@ -148,7 +148,9 @@ void setup(){
 }
 
 void loop(){
-
+  Serial.println();
+  Serial.print("Disabled: ");
+  Serial.println(disabled);
 
   // if (buttonPressed) {
   //   Serial.println("Button pressed!");
@@ -171,14 +173,14 @@ void loop(){
   }
   
   // IF Condition for Running State
-  if(disabled == false && error == false){ //&& waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
+  if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
     Serial.println(F("Entered Running State!")) ;
     lcd.clear() ;
     runningState() ;
   }
 
   // IF Condition for Idle State
-  if(disabled == false && error == false && idle == true && waterLevelReading() > waterThreshold && dht.readTemperature(true) <= tempThreshold){
+  if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) <= tempThreshold){
     Serial.println(F("Entered Idle State!")) ;
     rtcModule() ;
     Serial.println() ;
@@ -354,11 +356,17 @@ double dhtRead(){
     Serial.println(F("Failed to Read from DHT Sensor!")) ;
     return ;
   }
-  dhtToLCD(humidity, temperature) ;
   return temperature ;
 }
 
 void dhtToLCD(float h, float t){
+   float humidity = dht.readHumidity() ;
+  float temperature = dht.readTemperature(true) ;
+  Serial.println(F("Temperature: ")) ;
+  Serial.println(temperature) ;
+  Serial.println(F("Humidity: ")) ;
+  Serial.println(humidity) ;
+
   lcd.setCursor(0,0) ;
   lcd.print("Humidity: ") ;
   lcd.print(h) ;
@@ -391,7 +399,7 @@ void rtcModule(){
 
 //int i;
 void onOffSwitchISR(){
-  disabled = !disabled ;
+  disabled = false;
   //Serial.println(i++);
 }
 
