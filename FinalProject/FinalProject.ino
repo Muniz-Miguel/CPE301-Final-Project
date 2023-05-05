@@ -142,8 +142,6 @@ void setup(){
   // attachInterrupt(digitalPinToInterrupt(3), turnVentClockwise, FALLING);
   // attachInterrupt(digitalPinToInterrupt(2), turnVentCounter, FALLING);
 
-  
-
   Serial.begin(9600) ;
 }
 
@@ -151,6 +149,9 @@ void loop(){
   Serial.println();
   Serial.print("Disabled: ");
   Serial.println(disabled);
+  Serial.println();
+  Serial.print("buttonPressed: ");
+  Serial.println(buttonPressed);
 
   // if (buttonPressed) {
   //   Serial.println("Button pressed!");
@@ -162,24 +163,22 @@ void loop(){
   //   buttonPressed = false;
   //   WRITE_HIGH_PC(0);
   // }
+  if (buttonPressed){
 
-
-  // IF Condition for Disabled State
-  if(disabled == true){ //button is toggled off
-    Serial.println(F("Entered Disabled State!")) ;
-    lcd.clear();
-    disabledState();
-    //detachInterrupt(digitalPinToInterrupt(18));
-
-  }
-if (buttonPressed){
   // IF Condition for Running State
-  if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
-    Serial.println(F("Entered Running State!")) ;
-    lcd.clear() ;
-    runningState() ;
-  }
+    if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
+      Serial.println(F("Entered Running State!")) ;
+      lcd.clear() ;
+      runningState() ;
+      //detachInterrupt(digitalPinToInterrupt(18));
 
+    } else {
+      if(disabled == true){ //button is toggled off
+      Serial.println(F("Entered Disabled State!")) ;
+      lcd.clear();
+      disabledState();
+      }
+    }
   // IF Condition for Idle State
   if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) <= tempThreshold){
     Serial.println(F("Entered Idle State!")) ;
@@ -188,7 +187,7 @@ if (buttonPressed){
     lcd.clear() ;
     idleState() ;
   }
-}
+
 
   // IF Condition for Error State
   if(disabled == false && error == false && waterLevelReading() <= waterThreshold){
