@@ -13,8 +13,6 @@ volatile unsigned char* port_c = (unsigned char*) 0x28;
 volatile unsigned char* ddr_c = (unsigned char*) 0x27;  
 volatile unsigned char* pin_c = (unsigned char*) 0x26; 
 
-const uint8_t SWITCH_PIN = 19;
-
 // D register for LEDs
 volatile unsigned char* port_d = (unsigned char*) 0x2B; 
 volatile unsigned char* ddr_d = (unsigned char*) 0x2A;  
@@ -57,6 +55,18 @@ const int LED_PIN = 37;
 #define WRITE_HIGH_PC(pin_num)  *port_c |= (0x01 << pin_num);
 #define WRITE_LOW_PC(pin_num)  *port_c &= ~(0x01 << pin_num);
 
+// #define DECL_REG_U8(name, addr) volatile unsigned char *name = (volatile unsigned char *)addr;
+// #define DECL_REG_U16(name, addr) volatile unsigned int *name = (volatile unsigned int *)addr;
+
+
+// // interrupt registers
+// DECL_REG_U8(myEIMSK, 0x3D);
+// DECL_REG_U8(myEICRA, 0x69);
+
+// // Button registers
+// DECL_REG_U8(myDDRD, 0x2A);
+// DECL_REG_U8(myPORTD, 0x2B);
+
 
 // ADC for Water Sensor Module
 #define RDA 0x80
@@ -97,19 +107,29 @@ volatile bool error = false ;
 volatile bool idle = false ; 
 volatile bool buttonPressed = false;
 volatile bool resetPressed = false;
+volatile bool system_enabled;
+
+bool buttonLast = false;
+
+bool buttonState = false;
+bool lastButtonState = false;
 
 volatile bool turnVentL = false;
 volatile bool turnVentR = false; 
 
+const uint8_t SWITCH_PIN = 19;
 
 bool ledState = false;
 unsigned long lastDebounceTime = 0;
-const unsigned long debounceDelay = 300;
+const unsigned long debounceDelay = 50;
 
 void setup(){
-  disabled = true ;
+  disabled = false ;
   error = false ; 
   idle = false ; 
+  
+  buttonPressed = false;
+  system_enabled = false;
   
   //Initialize ADC
   U0init(9600) ;
@@ -141,10 +161,22 @@ void setup(){
   // *myEICRA &= 0b10101111; // falling edge mode for interrupt 2/3
   // *myEIMSK |= 0b00001100; // turn on interrupt 2/3
   // *mySREG |= 0b10000000;  // turn on global interrupt
-  DDRD &= ~(1 << SWITCH_PIN);
-  PORTD |= (1 << SWITCH_PIN); 
 
-  attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), onOffSwitchISR, FALLING);
+  // // Setup button ISR int3
+  // *myEIMSK |= 0b00001000;
+  // // Falling edge for int3
+  // *myEICRA |= 0b10000000;
+  
+  DDRD &= ~(1 << SWITCH_PIN);
+  PORTD |= (1 << SWITCH_PIN);
+
+  //set mode to 'rising' for button interrupt
+  *myEICRA |= 0xC0;
+  //turn on interrupt on pin 19 (button) INT3
+  *myEIMSK |= SWITCH_PIN; 
+  //pinMode(SWITCH_PIN, INPUT_PULLUP);
+
+  //attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), onOffSwitchISR, FALLING);
   //attachInterrupt(digitalPinToInterrupt(19), onOffSwitch, FALLING) ;
   // attachInterrupt(digitalPinToInterrupt(18), resetSystem, FALLING);
   // attachInterrupt(digitalPinToInterrupt(3), turnVentClockwise, FALLING);
@@ -161,52 +193,69 @@ void setup(){
 }
 
 void loop(){
-  Serial.println();
-  Serial.print("Disabled: ");
-  Serial.println(disabled);
+  // Serial.println();
+  // Serial.print("Disabled: ");
+  // Serial.println(disabled);
   Serial.println();
   Serial.print("buttonPressed: ");
   Serial.println(buttonPressed);
 
   // if (buttonPressed) {
   //   Serial.println("Button pressed!");
-  //   buttonPressed = false;
+  //   //buttonPressed = false;
   //   WRITE_HIGH_PC(0);
-  // }
-  // if (buttonPressed) {
+  //   digitalWrite(37,HIGH);
+  // } else {
   //   //toggleLed();
-  //   buttonPressed = false;
-  //   WRITE_HIGH_PC(0);
+  //   //buttonPressed = false;
+  //   WRITE_LOW_PC(0);
+  //   digitalWrite(37,LOW);
   // }
-  if(millis() - lastDebounceTime > debounceDelay){
+//   if(millis() - lastDebounceTime > debounceDelay){
     // if(buttonPressed){
     //   digitalWrite(LED_PIN, HIGH);
     // } else {
     //   digitalWrite(LED_PIN, LOW);
     // }
-  
-  
 
 
-  if (buttonPressed){
+//while(system_enabled){
+
+
+//   if (buttonPressed){
+//     if(buttonLast == false){
+//     disabled != disabled;
+//      buttonLast = false;
+//     } else {
+//     buttonLast == true;
+//     }
+
+//   Serial.println("THE BUTTON WAS PRESSED");
+//   buttonPressed = false;
+// }
+//}
+
+
+
+
+ // if (buttonPressed){
   // IF Condition for Running State
-   // if(disabled == false && error == false){ // && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
+  if(disabled == false && error == false){ // && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
       Serial.println(F("Entered Running State!")) ;
       lcd.clear() ;
       runningState() ;
       //detachInterrupt(digitalPinToInterrupt(18));
       // digitalWrite(LED_PIN, HIGH);
-    //}
-  } else {
-      // if(disabled == true){ //button is toggled off
-      Serial.println(F("Entered Disabled State!")) ;
-      lcd.clear();
-      disabledState();
-      // digitalWrite(LED_PIN, LOW); // turn off the LED
   }
-}
-  // }
-  // IF Condition for Idle State
+  
+  if(disabled == true && error == false){ //button is toggled off
+        Serial.println(F("Entered Disabled State!")) ;
+        lcd.clear();
+        disabledState();
+        // digitalWrite(LED_PIN, LOW); // turn off the LED
+  }
+  
+  //IF Condition for Idle State
   if(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) <= tempThreshold){
     Serial.println(F("Entered Idle State!")) ;
     rtcModule() ;
@@ -224,24 +273,24 @@ void loop(){
     errorState() ;
   }
 
-//If condition for reset button
-  if(resetPressed == true && error == true){
-    Serial.println("Reset Button pressed!");
-    resetProgram();
-    resetPressed = false;    
-  }
+// //If condition for reset button
+//   if(resetPressed == true && error == true){
+//     Serial.println("Reset Button pressed!");
+//     resetProgram();
+//     resetPressed = false;    
+//   }
 
-  // Serial.print("Turnning VentL: ");
-  // Serial.println(turnVentR);
-  if(turnVentL == true && error == false){
-    myStepper.step(stepsPerRevolution) ;
-  }  
+//   // Serial.print("Turnning VentL: ");
+//   // Serial.println(turnVentR);
+//   if(turnVentL == true && error == false){
+//     myStepper.step(stepsPerRevolution) ;
+//   }  
 
-  // Serial.print("Turnning VentR: ");
-  // Serial.println(turnVentR);
-  if(turnVentR == true && error == false){
-    myStepper.step(-stepsPerRevolution) ;
-  }
+//   // Serial.print("Turnning VentR: ");
+//   // Serial.println(turnVentR);
+//   if(turnVentR == true && error == false){
+//     myStepper.step(-stepsPerRevolution) ;
+//   }
   
   // rtcModule();
   // double waterLevel = waterLevelReading();
@@ -258,10 +307,6 @@ void loop(){
 
 }
 
-// void ONOFFbuttonISR() {
-//   buttonPressed = true;
-// }
-
 void disabledState(){
   //Green LED pin 34
   //Blue LED pin 36
@@ -269,7 +314,7 @@ void disabledState(){
   //Yellow LED 37
   //Serial.println("MEOW");
   //turn motor off
- // *port_b &= 0b00000000 ;
+  //*port_b &= 0b00000000 ;
   WRITE_LOW_PB(3);
 
   //Turn other LEDs off
@@ -289,34 +334,6 @@ void disabledState(){
   // }
 
 }
-
-// void disabledState(){
-//   //Green LED pin 34
-//   //Blue LED pin 36
-//   //Red LED pin 35
-//   //Yellow LED 37
-//   //Serial.println("MEOW");
-//   //turn motor off
-//  // *port_b &= 0b00000000 ;
-//   WRITE_LOW_PB(3);
-
-//   //Turn other LEDs off
-//   //*port_c &= 0b11111111 ;
-//   WRITE_LOW_PC(0);
-//   WRITE_LOW_PC(1);
-//   WRITE_LOW_PC(2);
-//   WRITE_LOW_PC(3);
-
-
-//   //Turn Yellow LED on
-//   WRITE_HIGH_PC(0);
-//   //*port_c |= 0b00000001 ;
-
-//   // while(disabled == true){
-//   //   dhtRead() ;
-//   // }
-
-// }
 
 void runningState(){
   //turn Fan On
@@ -454,17 +471,40 @@ void rtcModule(){
 }
 
 //int i;
-void onOffSwitchISR(){
-  // disabled = false;
-  // buttonPressed = !buttonPressed;
+// void onOffSwitchISR(){
+//   // disabled = false;
+//   // buttonPressed = !buttonPressed;
+//   //current_button_state = (*(port_b - 2) & 0x20) >> 5
+//   if(millis() - lastDebounceTime > debounceDelay){
+//     //disabled = false; // enable the interrupt (assuming 'disabled' is a variable controlling the interrupt)
+//     buttonPressed = true;
+//     lastDebounceTime = millis(); // record the last time the switch was toggled
+//   }    
+//   // int digitalValue = (PIND & _BV(3)) >> 3;
+//   //buttonState = digitalValue;
+//   // buttonState = digitalRead(19);
+//   // if (buttonState != lastButtonState && buttonState == LOW) {
+//   //   // Button is pressed, toggle the on/off state of your device
+//   //   // Here you can replace the Serial.println() statement with your own code
+//   //   //disabled = !disabled;
+//   //   buttonPressed = true;
+//   // }
+//   // lastButtonState = buttonState;
+  
 
-   if(millis() - lastDebounceTime > debounceDelay){
-    //disabled = false; // enable the interrupt (assuming 'disabled' is a variable controlling the interrupt)
-    buttonPressed = !buttonPressed; // toggle the state of the button
-    lastDebounceTime = millis(); // record the last time the switch was toggled
-  }
+//   //Serial.println(i++);
+// }
 
-  //Serial.println(i++);
+ISR(INT3_vect){
+  system_enabled = true;  
+  buttonPressed = true;
+
+// // unsigned long currentButtonPressTime = millis();
+//   if ( millis() - lastDebounceTime > debounceDelay) {
+//     buttonPressed = true;
+
+//   lastDebounceTime =  millis();
+//   }
 }
 
 //int i;
