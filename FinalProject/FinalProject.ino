@@ -83,7 +83,7 @@ volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
 
 //Thresholds
 float waterThreshold = 200 ;
-float tempThreshold = 85;
+float tempThreshold = 55;
 
 //DHT
 #define DHTPIN 46
@@ -102,13 +102,19 @@ double stepsPerRevolution = 2048 ;
 Stepper myStepper(stepsPerRevolution, 29, 25, 27, 23) ;
 
 // Current State Global Declarations
+// #define disabled 0
+// #define running 1 
+// #define idle 2
+// #define error 3
 volatile bool disabled = true ;
+volatile bool running = false;
 volatile bool error = false ;
-volatile bool idle = false ; 
+volatile bool idle = true ; 
+int state;
 volatile bool buttonPressed = false;
 volatile bool resetPressed = false;
 volatile bool system_enabled;
-volatile bool running = false;
+
 
 bool buttonLast = false;
 
@@ -127,8 +133,9 @@ const unsigned long debounceDelay = 50;
 void setup(){
   disabled = true ;
   error = false ; 
-  idle = false ; 
+  idle = true ; 
   running = false;
+  state = 0;
   
   buttonPressed = false;
   system_enabled = false;
@@ -174,7 +181,7 @@ void setup(){
 
   //set mode to 'rising' for button interrupt
   *myEICRA |= 0xC0;
-  //turn on interrupt on pin 19 (button) INT3
+  //turn on interrupt on pin 18 (button) INT3
   *myEIMSK |= 0x08; 
   //pinMode(SWITCH_PIN, INPUT_PULLUP);
 
@@ -193,11 +200,11 @@ void setup(){
 
   Serial.begin(9600) ;
 }
-
+int i;
 void loop(){
-  Serial.println();
-  Serial.print("Disabled: ");
-  Serial.println(disabled);
+  // Serial.println();
+  // Serial.print("Disabled: ");
+  // Serial.println(disabled);
   Serial.println();
   Serial.print("IDLE: ");
   Serial.println(idle);
@@ -208,23 +215,15 @@ void loop(){
   Serial.print("RUNNING: ");
   Serial.println(running);
   Serial.println();
+  Serial.print("STATE: ");
+  Serial.println(state);
+  Serial.println();
   Serial.print("SYSTEMENABLED: ");
   Serial.println(system_enabled);
   // Serial.println();
   // Serial.print("buttonPressed: ");
   // Serial.println(buttonPressed);
 
-  // if (buttonPressed) {
-  //   Serial.println("Button pressed!");
-  //   //buttonPressed = false;
-  //   WRITE_HIGH_PC(0);
-  //   digitalWrite(37,HIGH);
-  // } else {
-  //   //toggleLed();
-  //   //buttonPressed = false;
-  //   WRITE_LOW_PC(0);
-  //   digitalWrite(37,LOW);
-  // }
 //   if(millis() - lastDebounceTime > debounceDelay){
     // if(buttonPressed){
     //   digitalWrite(LED_PIN, HIGH);
@@ -237,84 +236,169 @@ void loop(){
 
 
   if (buttonPressed){
+    // i++;
+    // if(i%2 == 0){
+    // //isabled = !disabled;
+    // //if(buttonLast == false){ //off to on
+    //   disabled = 0;
+    //   idle = 1 ;
+    //   running = 0 ;
+    //   buttonLast = 1 ;
+    // //}else if(buttonLast == true){ //on to
+    // }else{
+    //   disabled = 1 ;
+    //   idle = 0;
+    //   running = 0 ;
+    //   buttonLast = 0 ;
+    //}
     // if(buttonLast == false){
     // disabled != disabled;
     //  buttonLast = false;
     // } else {
     //  buttonLast == true;
-    //}
+    // }
 
   Serial.println("THE BUTTON WAS PRESSED");
   buttonPressed = false;
   }
-//}
+
+//   switch (state){     
+//     case 0: 
+//       if (lastButtonState != 0){
+//         lastButtonState = 0;
+//       }
+//       break;
+
+//   }
+// // if (system_enabled){
+//   //state 0 = diable, 1 = running, 2 = idle, 3  = error
+//   if(state != 0 && state !=3 && waterLevelReading() > waterThreshold){
+//     if(state == running && dht.readTemperature(true) > tempThreshold){
+//       state = idle;
+
+//     } else if(state == idle && dht.readTemperature(true) <= tempThreshold) {
+//       state = running;
+
+//     } 
+//   } else if (state != 0 && state !=3 && waterLevelReading() < waterThreshold){
+//     state = error; 
+
+//   }
+
+//   switch(state){
+
+//     case 0: 
+//       Serial.println(F("Entered Disabled State!")) ;
+//       lcd.clear();
+//       disabledState();
+//       break;
+
+//     case 1:
+//     if(lastButtonState != 1){
+//       Serial.println(F("Entered Running State!")) ;
+//       lcd.clear() ;
+//       runningState() ;
+//     }
+//       break;
+//     case 2:
+//       Serial.println(F("Entered Idle State!")) ;
+//       rtcModule() ;
+//       Serial.println() ;
+//       lcd.clear() ;
+//       idleState() ;
+//       break;
+
+//     case 3: 
+//       Serial.println(F("Entered Error State!")) ;
+//       rtcModule() ;
+//       lcd.clear() ;
+//       errorState() ;
+//       break;
+      
+//     //my_delay(100);
+//   } 
 
 
 
 
- // if (buttonPressed){
-  // IF Condition for Running State
-  if(disabled == false && error == false && idle == false && running == true && waterLevelReading() > waterThreshold ){ //&& dht.readTemperature(true) > tempThreshold
+// } else {
+//     Serial.println(F("Disabled State!")) ;
+//     lcd.clear();
+//     disabledState();
+// }
+
+
+if (system_enabled){  
+  
+//  // if (buttonPressed){
+//   //IF Condition for Running State
+  if(idle == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){ //&& dht.readTemperature(true) > tempThreshold
       Serial.println(F("Entered Running State!")) ;
       lcd.clear() ;
       runningState() ;
-      //detachInterrupt(digitalPinToInterrupt(18));
-      // digitalWrite(LED_PIN, HIGH);
+      dhtRead();
       if (dht.readTemperature(true) <= tempThreshold){
-        //idle = true;
+        idle = true;
+        running = false;
       }
   }
   
-  if(disabled == true && error == false && idle == false){ //button is toggled off
-        Serial.println(F("Entered Disabled State!")) ;
-        lcd.clear();
-        disabledState();
-        // digitalWrite(LED_PIN, LOW); // turn off the LED
-  }
+  // if(disabled == true && error == false && idle == false){ //button is toggled off
+  //       Serial.println(F("Entered Disabled State!")) ;
+  //       lcd.clear();
+  //       disabledState();
+  // }
   
   //IF Condition for Idle State
-  if(disabled == false && idle == true && error == false && waterLevelReading() > waterThreshold){
+  if(idle == true && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) <= tempThreshold){
     Serial.println(F("Entered Idle State!")) ;
     rtcModule() ;
     Serial.println() ;
     lcd.clear() ;
     idleState() ;
 
-    dhtReadLCD();
-
-    if (dht.readTemperature(true) > tempThreshold)
+    //dhtReadLCD();
+    dhtRead() ;
+    if (dht.readTemperature(true) > tempThreshold){
     idle = false;
     running = true;
-    
+    Serial.println("MMEEEEEEEEEEEEEEOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOWWWWWWWWWWWWWWWWWWWWWWWW");
+    }
   }
 
 
-  // IF Condition for Error State
-  if(disabled == false && error == false && waterLevelReading() <= waterThreshold){
+  //IF Condition for Error State
+  if(error == false && waterLevelReading() <= waterThreshold){
     Serial.println(F("Entered Error State!")) ;
     rtcModule() ;
     lcd.clear() ;
     errorState() ;
   }
 
-// //If condition for reset button
-//   if(resetPressed == true && error == true){
-//     Serial.println("Reset Button pressed!");
-//     resetProgram();
-//     resetPressed = false;    
-//   }
+//If condition for reset button
+  if(resetPressed == true && error == true){
+    Serial.println("Reset Button pressed!");
+    resetProgram();
+    resetPressed = false;    
+  }
 
-//   // Serial.print("Turnning VentL: ");
-//   // Serial.println(turnVentR);
-//   if(turnVentL == true && error == false){
-//     myStepper.step(stepsPerRevolution) ;
-//   }  
+} else {
+    Serial.println(F("Entered Disabled State!")) ;
+    lcd.clear();
+    disabledState();
+  
+}
+  //byte buttonState = PIND & B00000100;
 
-//   // Serial.print("Turnning VentR: ");
-//   // Serial.println(turnVentR);
-//   if(turnVentR == true && error == false){
-//     myStepper.step(-stepsPerRevolution) ;
-//   }
+  // if(turnVentL == true && error == false){
+  //   Serial.print("Turnning VentL: ");
+  //   myStepper.step(stepsPerRevolution) ;
+  // }  
+  
+  // if(buttonState == 0 && error == false){
+  //    Serial.print("Turnning VentR ");
+  //   myStepper.step(-stepsPerRevolution) ;
+  // }
   
   // rtcModule();
   // double waterLevel = waterLevelReading();
@@ -322,12 +406,12 @@ void loop(){
   // Serial.println(waterLevel) ;
   // dhtRead() ;
 
-  //RTC_Module();
+  // RTC_Module();
   // lcd.setCursor(0, 1) ;
   // lcd.print(millis() / 1000);   
 
   //Stepper Testing //
-  //myStepper.step(stepsPerRevolution) ;
+  // myStepper.step(stepsPerRevolution) ;
 
 }
 
@@ -407,14 +491,14 @@ void idleState(){
   // *port_c |= 0b00001000 ;
   WRITE_HIGH_PC(3);
   //check to see conditions for idle state are still true
-  while(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
-    //dhtRead() ;
-    dhtReadLCD();
-  }
+  // while(disabled == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){
+  //   dhtRead() ;
+  //   //dhtReadLCD();
+  // }
 }
 
 void errorState(){
-  error = true ;
+  //error = true ;
 
   // Turn Fan off
   //*port_b &= 0b00000000 ;
@@ -538,19 +622,25 @@ void rtcModule(){
 
 ISR(INT3_vect){
   //system_enabled = true;  
-  // idle = true; 
-  // disabled = false;
-  idle = !idle;
-  disabled = !disabled;
-  buttonPressed = true;
-  system_enabled = !system_enabled;
 
-// // unsigned long currentButtonPressTime = millis();
-//   if ( millis() - lastDebounceTime > debounceDelay) {
-//     buttonPressed = true;
+  // if(state == 0){
+  //   lastButtonState = 0;
+  //   state = 2;
+  // } else {
+  //   lastButtonState = state;
+  //   state = 0;
+  // }
+  // buttonPressed = true;
+  // system_enabled = !system_enabled;
 
-//   lastDebounceTime =  millis();
-//   }
+// unsigned long currentButtonPressTime = millis();
+
+//  if ( millis() - lastDebounceTime > debounceDelay) {
+    buttonPressed = true;
+    system_enabled = !system_enabled ;
+
+// lastDebounceTime =  millis();
+//  }
 }
 
 //int i;
