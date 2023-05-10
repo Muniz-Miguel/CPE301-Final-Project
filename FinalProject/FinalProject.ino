@@ -260,6 +260,7 @@ void loop(){
 if(state == 0){
     Serial.println(F("Disabled State!")) ;
     lcd.clear();
+    dhtReadLCD();
     disabledState();
   
 }
@@ -269,22 +270,26 @@ if (system_enabled){
   //state 0 = diable, 1 = running, 2 = idle, 3  = error
   if(state != 0 && state !=3 && waterLevelReading() > waterThreshold){
     if(state == running && dht.readTemperature(true) > tempThreshold){
-      state = idle;
+      state = running;
 
     } else if(state == idle && dht.readTemperature(true) <= tempThreshold) {
-      state = running;
+      state = idle;
 
     } 
   } else if (state != 0 && state !=3 && waterLevelReading() < waterThreshold){
     state = error; 
 
-  }
+  } else if (state !=0 && state == 3 && resetPressed == true){
+    state = idle;
+    resetPressed = false;
+  } 
 
   switch(state){
 
     case 0: //disabled state
       Serial.println(F("Entered Disabled State!")) ;
       lcd.clear();
+      dhtReadLCD();
       disabledState();
       break;
 
@@ -309,9 +314,22 @@ if (system_enabled){
       lcd.clear() ;
       errorState() ;
       break;
-      
-    //my_delay(100);
   }
+  
+  if(turnVentL == true && error == false){
+    Serial.print("Turnning VentL: ");
+    for(int j = 0; i < 1; i++){
+    myStepper.step(stepsPerRevolution) ;
+    }
+    turnVentL = false;
+  }  
+  
+  if(turnVentR == true && error == false){
+    Serial.print("Turnning VentR ");
+    myStepper.step(-stepsPerRevolution) ;
+    turnVentR = false;
+  }
+
 } 
 
   if(turnVentL == true && error == false){
@@ -328,74 +346,6 @@ if (system_enabled){
     turnVentR = false;
   }
 
-
-// } else {
-//     Serial.println(F("Disabled State!")) ;
-//     lcd.clear();
-//     disabledState();
-// }
-
-
-// if (system_enabled){  
-  
-// //  // if (buttonPressed){
-// //   //IF Condition for Running State
-//   if(idle == false && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) > tempThreshold){ //&& dht.readTemperature(true) > tempThreshold
-//       Serial.println(F("Entered Running State!")) ;
-//       lcd.clear() ;
-//       runningState() ;
-//       dhtRead();
-//       if (dht.readTemperature(true) <= tempThreshold){
-//         idle = true;
-//         running = false;
-//       }
-//   }
-  
-//   // if(disabled == true && error == false && idle == false){ //button is toggled off
-//   //       Serial.println(F("Entered Disabled State!")) ;
-//   //       lcd.clear();
-//   //       disabledState();
-//   // }
-  
-//   //IF Condition for Idle State
-//   if(idle == true && error == false && waterLevelReading() > waterThreshold && dht.readTemperature(true) <= tempThreshold){
-//     Serial.println(F("Entered Idle State!")) ;
-//     rtcModule() ;
-//     Serial.println() ;
-//     lcd.clear() ;
-//     idleState() ;
-
-//     //dhtReadLCD();
-//     dhtRead() ;
-//     if (dht.readTemperature(true) > tempThreshold){
-//     idle = false;
-//     running = true;
-//     Serial.println("MMEEEEEEEEEEEEEEOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOWWWWWWWWWWWWWWWWWWWWWWWW");
-//     }
-//   }
-
-
-//   //IF Condition for Error State
-//   if(error == false && waterLevelReading() <= waterThreshold){
-//     Serial.println(F("Entered Error State!")) ;
-//     rtcModule() ;
-//     lcd.clear() ;
-//     errorState() ;
-//   }
-
-// //If condition for reset button
-//   if(resetPressed == true && error == true){
-//     Serial.println("Reset Button pressed!");
-//     resetProgram();
-//     resetPressed = false;    
-//   }
-
-// } else {
-//     Serial.println(F("Entered Disabled State!")) ;
-//     lcd.clear();
-//     disabledState();
-  
-// }
   //byte buttonState = PIND & B00000100;
 
   // if(turnVentL == true && error == false){
@@ -625,21 +575,6 @@ void onOffSwitchISR(){
 //     buttonPressed = true;
 //     lastDebounceTime = millis(); // record the last time the switch was toggled
 //   }    
-//   // int digitalValue = (PIND & _BV(3)) >> 3;
-//   //buttonState = digitalValue;
-//   // buttonState = digitalRead(19);
-//   // if (buttonState != lastButtonState && buttonState == LOW) {
-//   //   // Button is pressed, toggle the on/off state of your device
-//   //   // Here you can replace the Serial.println() statement with your own code
-//   //   //disabled = !disabled;
-//   //   buttonPressed = true;
-//   // }
-//   // lastButtonState = buttonState;
-  
-
-//   //Serial.println(i++);
-// }
-
 // ISR(INT3_vect){
   //system_enabled = true;  
 
