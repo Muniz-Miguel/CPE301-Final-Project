@@ -178,9 +178,9 @@ void setup(){
   // pinMode(SWITCH_PIN, INPUT_PULLUP);
   // pinMode(LED_PIN, OUTPUT);
   // attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), onOffSwitchISR, RISING);
-
-  Serial.begin(9600) ;
 }
+
+
 int i;
 void loop(){
   // Serial.println();
@@ -195,16 +195,20 @@ void loop(){
   // Serial.println();
   // Serial.print("RUNNING: ");
   // Serial.println(running);
-  Serial.print("STATE: ");
-  Serial.println(state);
-  Serial.println();
-  Serial.print("SYSTEMENABLED: ");
-  Serial.println(system_enabled);
-  // if(system_enabled){
-  //   printString("1");
-  // } else if (system_enabled == false){
-  //   printString("0");
-  // }
+  // Serial.print("STATE: ");
+  // Serial.println(state);
+  // Serial.println();
+  // Serial.print("SYSTEMENABLED: ");
+  // Serial.println(system_enabled);
+  printString("STATE: ");
+  printInt(state);
+  printString("\n");
+  if(system_enabled){
+    printString("System Enabled!\n");
+  }
+  else{
+    printString("System Disabled\n");
+  }
   //printString(system_enabled);
   //Serial.println(system_enabled);
   // Serial.println();
@@ -245,7 +249,7 @@ void loop(){
     //  buttonLast == true;
     // }
 
-  Serial.println("THE BUTTON WAS PRESSED");
+  printString("THE BUTTON WAS PRESSED\n");
   buttonPressed = false;
   }
 
@@ -258,21 +262,19 @@ void loop(){
 
 //   }
 if(state == 0){
-    Serial.println(F("Disabled State!")) ;
+    printString("Disabled State at ") ;
+    rtcModule() ;
     lcd.clear();
-    dhtReadLCD();
     disabledState();
   
-}
-
-
-if (system_enabled){
+} else if (system_enabled){
   //state 0 = diable, 1 = running, 2 = idle, 3  = error
   if(state != 0 && state !=3 && waterLevelReading() > waterThreshold){
-    if(state == running && dht.readTemperature(true) > tempThreshold){
+    dhtRead();
+    if(state == idle && dht.readTemperature(true) > tempThreshold){
       state = running;
 
-    } else if(state == idle && dht.readTemperature(true) <= tempThreshold) {
+    } else if(state == running && dht.readTemperature(true) <= tempThreshold) {
       state = idle;
 
     } 
@@ -287,61 +289,65 @@ if (system_enabled){
   switch(state){
 
     case 0: //disabled state
-      Serial.println(F("Entered Disabled State!")) ;
+      printString("Entered Disabled State at ") ;
+      rtcModule();
       lcd.clear();
-      dhtReadLCD();
       disabledState();
       break;
 
     case 1: //running state
     //if(lastButtonState != 1){
-      Serial.println(F("Entered Running State!")) ;
+      printString("Entered Running State at ") ;
+      rtcModule();
       lcd.clear() ;
+      dhtReadLCD();
       runningState() ;
     //}
       break;
     case 2: //idle state
-      Serial.println(F("Entered Idle State!")) ;
+      printString("Entered Idle State! at ") ;
       rtcModule() ;
       Serial.println() ;
       lcd.clear() ;
+      dhtReadLCD();
       idleState() ;
       break;
 
     case 3: //error state
-      Serial.println(F("Entered Error State!")) ;
+      printString("Entered Error State at ") ;
       rtcModule() ;
       lcd.clear() ;
+      dhtReadLCD();
       errorState() ;
       break;
   }
   
-  if(turnVentL == true && error == false){
-    Serial.print("Turnning VentL: ");
+  if(turnVentL == true && state !=3){
+    printString("Turnning VentL: ");
     for(int j = 0; i < 1; i++){
     myStepper.step(stepsPerRevolution) ;
     }
     turnVentL = false;
   }  
   
-  if(turnVentR == true && error == false){
-    Serial.print("Turnning VentR ");
+  if(turnVentR == true && state !=3){
+    printString("Turnning VentR ");
     myStepper.step(-stepsPerRevolution) ;
     turnVentR = false;
   }
 
 } 
 
-  if(turnVentL == true && error == false){
-    Serial.print("Turnning VentL: ");
+  if(turnVentL == true && state !=3){
+    printString("Turnning VentL: ");
     for(int j = 0; i < 1; i++){
     myStepper.step(stepsPerRevolution) ;
     }
     turnVentL = false;
   }  
   
-  if(turnVentR == true && error == false){
-    Serial.print("Turnning VentR ");
+  if(turnVentR == true &&  state !=3){
+    printString("Turnning VentR ");
     myStepper.step(-stepsPerRevolution) ;
     turnVentR = false;
   }
@@ -487,28 +493,33 @@ double waterLevelReading(){
 double dhtRead(){
   float humidity = dht.readHumidity() ;
   float temperature = dht.readTemperature(true) ;
-  Serial.println(F("Temperature: ")) ;
-  Serial.println(temperature) ;
-  Serial.println(F("Humidity: ")) ;
-  Serial.println(humidity) ;
+  printString("Temperature: ") ;
+  printFloat(temperature, 2) ;
+  printString("\n") ;
+  printString("Humidity: ") ;
+  printFloat(humidity, 2) ;
+  printString("\n") ;
 
   if(isnan(humidity) || isnan(temperature)){
-    Serial.println(F("Failed to Read from DHT Sensor!")) ;
+    printString("Failed to Read from DHT Sensor!") ;
     return ;
   }
   return temperature ;
 }
 
 double dhtReadLCD(){
+  //mydelay(1000);
   float humidity = dht.readHumidity() ;
   float temperature = dht.readTemperature(true) ;
-  Serial.println(F("Temperature: ")) ;
-  Serial.println(temperature) ;
-  Serial.println(F("Humidity: ")) ;
-  Serial.println(humidity) ;
+  printString("Temperature: ") ;
+  printFloat(temperature, 2) ;
+  printString("\n") ;
+  printString("Humidity: ") ;
+  printFloat(humidity, 2) ;
+  printString("\n") ;
 
   if(isnan(humidity) || isnan(temperature)){
-    Serial.println(F("Failed to Read from DHT Sensor!")) ;
+    printString("Failed to Read from DHT Sensor!") ;
     return ;
   }
   dhtToLCD(humidity, temperature);
@@ -516,12 +527,17 @@ double dhtReadLCD(){
 }
 
 void dhtToLCD(float h, float t){
-   float humidity = dht.readHumidity() ;
+  // double freq = 1.0 / 60.0;
+  // mydelay((unsigned int) (freq * 1000000));
+  //delay(1000); 
+  float humidity = dht.readHumidity() ;
   float temperature = dht.readTemperature(true) ;
-  Serial.println(F("Temperature: ")) ;
-  Serial.println(temperature) ;
-  Serial.println(F("Humidity: ")) ;
-  Serial.println(humidity) ;
+  printString("Temperature: ") ;
+  printFloat(temperature, 2) ;
+  printString("\n") ;
+  printString("Humidity: ") ;
+  printFloat(humidity, 2) ;
+  printString("\n"); 
 
   lcd.setCursor(0,0) ;
   lcd.print("Humidity: ") ;
@@ -537,32 +553,38 @@ void dhtToLCD(float h, float t){
 
 void rtcModule(){
   DateTime now = rtc.now();
-  Serial.print(now.year(), DEC);
-  Serial.print('/');
-  Serial.print(now.month(), DEC);
-  Serial.print('/');
-  Serial.print(now.day(), DEC);
-  Serial.print(' ');
-  Serial.print(now.hour(), DEC);
-  Serial.print(':');
-  Serial.print(now.minute(), DEC);
-  Serial.print(':');
-  Serial.print(now.second(), DEC);
-  Serial.println();
-  //delay(1000);
+  printInt(now.year());
+  U0putchar('/');
+  printInt(now.month());
+  U0putchar('/');
+  printInt(now.day());
+  U0putchar(' ');
+  printInt(now.hour());
+  U0putchar(':');
+  printInt(now.minute());
+  U0putchar(':');
+  printInt(now.second());
+  U0putchar('\n');
 
 }
 
 //int i;
 //state 0 = diable, 1 = running, 2 = idle, 3  = error
 void onOffSwitchISR(){
+  //   unsigned long currentTime = millis();
+
+//   if (currentTime - lastDebounceTime > debounceDelay) {
+//     resetPressed = true;
+//   }
+
+//   lastDebounceTime = currentTime;
     buttonPressed = true;
     system_enabled = !system_enabled ;
   if (state == 0){
-    old_state = 0;
+    //old_state = 0;
     state = 2; // set to idle
   } else {
-    old_state = state; //copy state to old_state
+    //old_state = state; //copy state to old_state
     state = 0;
   }
 
@@ -719,8 +741,18 @@ void printString(const char* s){
     i++;
   }
 }
-void mydelay(unsigned int freq)
-{
+
+void printFloat(float f, int precision) {
+  char buf[20];
+  dtostrf(f, 6, precision, buf);
+  printString(buf);
+}
+void printInt(int n) {
+  char buf[10];
+  sprintf(buf, "%d", n);
+  printString(buf);
+}
+void mydelay(unsigned int freq){
   // calc period
   double period = 1.0 / double(freq);
   // 50% duty cycle
