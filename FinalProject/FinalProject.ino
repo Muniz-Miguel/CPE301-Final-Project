@@ -80,7 +80,7 @@ volatile unsigned int* my_ADC_DATA = (unsigned int*) 0x78;
 
 //Thresholds
 float waterThreshold = 200 ;
-float tempThreshold = 55;
+float tempThreshold = 80;
 
 //DHT
 #define DHTPIN 46
@@ -100,7 +100,7 @@ Stepper myStepper(stepsPerRevolution, 29, 25, 27, 23) ;
 
 // Current State Global Declarations
 #define disabled 0
-#define running 1 
+#define enable 1 //cant use running or run for somereason?
 #define idle 2
 #define error 3
 // volatile bool disabled = true ;
@@ -268,20 +268,23 @@ if(state == 0){
     disabledState();
   
 } else if (system_enabled){
-  //state 0 = diable, 1 = running, 2 = idle, 3  = error
-  if(state != 0 && state !=3 && waterLevelReading() > waterThreshold){
+  //state 0 = diable, 1 = enable(running), 2 = idle, 3  = error
+  if(state != disabled && state != error && waterLevelReading() > waterThreshold){
     dhtRead();
-    if(state == idle && dht.readTemperature(true) > tempThreshold){
-      state = running;
+    if(state == enable && dht.readTemperature(true) > tempThreshold){
+      state = enable;
 
-    } else if(state == running && dht.readTemperature(true) <= tempThreshold) {
+    } else if(state == idle && dht.readTemperature(true) <= tempThreshold) {
       state = idle;
+      if (dht.readTemperature(true) > tempThreshold){
+        state = enable;
+      }
 
     } 
-  } else if (state != 0 && state !=3 && waterLevelReading() < waterThreshold){
+  } else if (state != disabled && state != error && waterLevelReading() < waterThreshold){
     state = error; 
 
-  } else if (state !=0 && state == 3 && resetPressed == true){
+  } else if (state != disabled && state == error && resetPressed == true){
     state = idle;
     resetPressed = false;
   } 
@@ -322,7 +325,7 @@ if(state == 0){
       break;
   }
   
-  if(turnVentL == true && state !=3){
+  if(turnVentL == true && state != error){
     printString("Turnning VentL: ");
     for(int j = 0; i < 1; i++){
     myStepper.step(stepsPerRevolution) ;
@@ -330,7 +333,7 @@ if(state == 0){
     turnVentL = false;
   }  
   
-  if(turnVentR == true && state !=3){
+  if(turnVentR == true && state != error){
     printString("Turnning VentR ");
     myStepper.step(-stepsPerRevolution) ;
     turnVentR = false;
@@ -338,7 +341,7 @@ if(state == 0){
 
 } 
 
-  if(turnVentL == true && state !=3){
+  if(turnVentL == true && state != error){
     printString("Turnning VentL: ");
     for(int j = 0; i < 1; i++){
     myStepper.step(stepsPerRevolution) ;
@@ -346,7 +349,7 @@ if(state == 0){
     turnVentL = false;
   }  
   
-  if(turnVentR == true &&  state !=3){
+  if(turnVentR == true &&  state != error){
     printString("Turnning VentR ");
     myStepper.step(-stepsPerRevolution) ;
     turnVentR = false;
@@ -571,15 +574,16 @@ void rtcModule(){
 //int i;
 //state 0 = diable, 1 = running, 2 = idle, 3  = error
 void onOffSwitchISR(){
-  //   unsigned long currentTime = millis();
+    unsigned long currentTime = millis();
 
-//   if (currentTime - lastDebounceTime > debounceDelay) {
-//     resetPressed = true;
-//   }
-
-//   lastDebounceTime = currentTime;
+  if (currentTime - lastDebounceTime > debounceDelay) {
     buttonPressed = true;
     system_enabled = !system_enabled ;
+  }
+
+  lastDebounceTime = currentTime;
+    // buttonPressed = true;
+    // system_enabled = !system_enabled ;
   if (state == 0){
     //old_state = 0;
     state = 2; // set to idle
@@ -589,14 +593,6 @@ void onOffSwitchISR(){
   }
 
 }
-//   // disabled = false;
-//   // buttonPressed = !buttonPressed;
-//   //current_button_state = (*(port_b - 2) & 0x20) >> 5
-//   if(millis() - lastDebounceTime > debounceDelay){
-//     //disabled = false; // enable the interrupt (assuming 'disabled' is a variable controlling the interrupt)
-//     buttonPressed = true;
-//     lastDebounceTime = millis(); // record the last time the switch was toggled
-//   }    
 // ISR(INT3_vect){
   //system_enabled = true;  
 
