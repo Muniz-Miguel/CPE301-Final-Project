@@ -108,22 +108,15 @@ Stepper myStepper(stepsPerRevolution, 29, 25, 27, 23) ;
 // volatile bool error = false ;
 // volatile bool idle = true ; 
 int state;
+int old_state;
 volatile bool buttonPressed = false;
 volatile bool resetPressed = false;
 volatile bool system_enabled;
 
 
-bool buttonLast = false;
-
-bool buttonState = false;
-bool lastButtonState = false;
-
 volatile bool turnVentL = false;
 volatile bool turnVentR = false; 
 
-const uint8_t SWITCH_PIN = 18;
-
-bool ledState = false;
 unsigned long lastDebounceTime = 0;
 const unsigned long debounceDelay = 50;
 
@@ -133,7 +126,7 @@ void setup(){
   // idle = true ; 
   // running = false;
   state = 0;
-  
+  old_state = 0;
   buttonPressed = false;
   system_enabled = false;
   
@@ -202,12 +195,18 @@ void loop(){
   // Serial.println();
   // Serial.print("RUNNING: ");
   // Serial.println(running);
-  Serial.println();
   Serial.print("STATE: ");
   Serial.println(state);
   Serial.println();
   Serial.print("SYSTEMENABLED: ");
   Serial.println(system_enabled);
+  // if(system_enabled){
+  //   printString("1");
+  // } else if (system_enabled == false){
+  //   printString("0");
+  // }
+  //printString(system_enabled);
+  //Serial.println(system_enabled);
   // Serial.println();
   // Serial.print("buttonPressed: ");
   // Serial.println(buttonPressed);
@@ -258,7 +257,12 @@ void loop(){
 //       break;
 
 //   }
-if(state = 0)
+if(state == 0){
+    Serial.println(F("Disabled State!")) ;
+    lcd.clear();
+    disabledState();
+  
+}
 
 
 if (system_enabled){
@@ -278,20 +282,20 @@ if (system_enabled){
 
   switch(state){
 
-    case 0: 
+    case 0: //disabled state
       Serial.println(F("Entered Disabled State!")) ;
       lcd.clear();
       disabledState();
       break;
 
-    case 1:
-    if(lastButtonState != 1){
+    case 1: //running state
+    //if(lastButtonState != 1){
       Serial.println(F("Entered Running State!")) ;
       lcd.clear() ;
       runningState() ;
-    }
+    //}
       break;
-    case 2:
+    case 2: //idle state
       Serial.println(F("Entered Idle State!")) ;
       rtcModule() ;
       Serial.println() ;
@@ -299,7 +303,7 @@ if (system_enabled){
       idleState() ;
       break;
 
-    case 3: 
+    case 3: //error state
       Serial.println(F("Entered Error State!")) ;
       rtcModule() ;
       lcd.clear() ;
@@ -315,12 +319,13 @@ if (system_enabled){
     for(int j = 0; i < 1; i++){
     myStepper.step(stepsPerRevolution) ;
     }
+    turnVentL = false;
   }  
   
   if(turnVentR == true && error == false){
     Serial.print("Turnning VentR ");
     myStepper.step(-stepsPerRevolution) ;
-    turnVentL = false;
+    turnVentR = false;
   }
 
 
@@ -599,9 +604,18 @@ void rtcModule(){
 }
 
 //int i;
+//state 0 = diable, 1 = running, 2 = idle, 3  = error
 void onOffSwitchISR(){
     buttonPressed = true;
     system_enabled = !system_enabled ;
+  if (state == 0){
+    old_state = 0;
+    state = 2; // set to idle
+  } else {
+    old_state = state; //copy state to old_state
+    state = 0;
+  }
+
 }
 //   // disabled = false;
 //   // buttonPressed = !buttonPressed;
@@ -763,7 +777,13 @@ void U0putchar(unsigned char U0pdata){
   while((*myUCSR0A & TBE)==0);
   *myUDR0 = U0pdata;
 }
-
+void printString(const char* s){
+  int i = 0;
+  while (s[i]) {
+    U0putchar(s[i]);
+    i++;
+  }
+}
 void mydelay(unsigned int freq)
 {
   // calc period
