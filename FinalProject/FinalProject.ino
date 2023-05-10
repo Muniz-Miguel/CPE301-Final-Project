@@ -10,6 +10,42 @@ void setup() {
   // put your setup code here, to run once:
   U0init(9600) ;
 }
+<<<<<<< Updated upstream
+=======
+int i;
+void loop(){
+  // Serial.println();
+  // Serial.print("Disabled: ");
+  // Serial.println(disabled);
+  // Serial.println();
+  // Serial.print("IDLE: ");
+  // Serial.println(idle);
+  // Serial.println();
+  // Serial.print("ERROR: ");
+  // Serial.println(error);
+  // Serial.println();
+  // Serial.print("RUNNING: ");
+  // Serial.println(running);
+  // Serial.print("STATE: ");
+  // Serial.println(state);
+  // Serial.println();
+  // Serial.print("SYSTEMENABLED: ");
+  // Serial.println(system_enabled);
+  printString("Hello World! \n") ;
+  int myInt = 5;
+  printInt(myInt);
+  printString("\n");
+  // if(system_enabled){
+  //   printString("1");
+  // } else if (system_enabled == false){
+  //   printString("0");
+  // }
+  //printString(system_enabled);
+  //Serial.println(system_enabled);
+  // Serial.println();
+  // Serial.print("buttonPressed: ");
+  // Serial.println(buttonPressed);
+>>>>>>> Stashed changes
 
 void loop() {
   // put your main code here, to run repeatedly:
@@ -44,6 +80,7 @@ void U0init(int U0baud){
  *myUCSR0C = 0x06;
  *myUBRR0  = tbaud;
 }
+<<<<<<< Updated upstream
 
 unsigned char U0kbhit(){
   return *myUCSR0A & RDA;
@@ -53,7 +90,48 @@ unsigned char U0getchar(){
   return *myUDR0;
 }
 
+=======
+>>>>>>> Stashed changes
 void U0putchar(unsigned char U0pdata){
   while((*myUCSR0A & TBE)==0);
   *myUDR0 = U0pdata;
 }
+<<<<<<< Updated upstream
+=======
+void printString(const char* s){
+  int i = 0;
+  while (s[i]) {
+    U0putchar(s[i]);
+    i++;
+  }
+}
+void printInt(int n) {
+  char buf[10];
+  sprintf(buf, "%d", n);
+  printString(buf);
+}
+void mydelay(unsigned int freq)
+{
+  // calc period
+  double period = 1.0 / double(freq);
+  // 50% duty cycle
+  double half_period = period / 2.0f;
+  // clock period def
+  double clk_period = 0.0000000625;
+  // calc ticks
+  unsigned int ticks = half_period / clk_period;
+  // stop the timer
+  *myTCCR1B &= 0xF8;
+  // set the counts
+  *myTCNT1 = (unsigned int)(65536 - ticks);
+  // start the timer
+  *myTCCR1B |= 0b00000001;
+  // wait for overflow
+  while ((*myTIFR1 & 0x01) == 0)
+    ; // 0b 0000 0000
+  // stop the timer
+  *myTCCR1B &= 0xF8; // 0b 0000 0000
+  // reset TOV
+  *myTIFR1 |= 0x01;
+}
+>>>>>>> Stashed changes
