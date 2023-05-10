@@ -261,8 +261,9 @@ void loop(){
 
 //   }
 if(state == 0){
-    printString("Disabled State!") ;
+    printString("Disabled State!\n") ;
     lcd.clear();
+    dhtReadLCD();
     disabledState();
   
 }
@@ -299,7 +300,7 @@ if (system_enabled){
     //}
       break;
     case 2: //idle state
-      printString("Entered Idle State!") ;
+      printString("Entered Idle State! at ") ;
       rtcModule() ;
       printString("\n") ;
       lcd.clear() ;
